@@ -126,4 +126,36 @@ public class ShuffleEngineTest {
          engine.setMobileMode(before);
       }
    }
+
+   /**
+    * Stage disruptions are saved as non-support team members (as the desktop app does) and must
+    * survive a save and reload, with the mega slot kept on a support member.
+    */
+   @Test
+   public void disruptionsPersistAsNonSupport() {
+      Stage stage = engine.getStage("016");
+      TeamImpl team = new TeamImpl();
+      String[] names = { "Audino", "Pikachu", "Squirtle", "Nidoran-f" };
+      for (int i = 0; i < names.length; i++) {
+         team.addName(names[i], (char) ('a' + i));
+      }
+      team.setNonSupport("Nidoran-f", true);
+      team.setMegaSlot("Audino");
+      engine.getTeamManager().setTeamForStage(team, stage);
+      engine.getTeamManager().saveDataToConfig();
+
+      try (ShuffleEngine reloaded = new ShuffleEngine()) {
+         Team loaded = reloaded.getTeamForStage(reloaded.getStage("016"));
+         assertEquals(java.util.Arrays.asList(names), loaded.getNames());
+         assertTrue("disruption should be non-support", loaded.isNonSupport("Nidoran-f"));
+         assertFalse("team member should be support", loaded.isNonSupport("Pikachu"));
+         assertEquals("Audino", loaded.getMegaSlotName());
+
+         // And it solves: a board with the disruption species on it.
+         Board board = reloaded.getDefaultBoard(reloaded.getStage("016"));
+         List<SimulationResult> results = reloaded
+               .solve(new SolveRequest(board, reloaded.getStage("016"), loaded).setNumFeeders(5));
+         assertFalse(results.isEmpty());
+      }
+   }
 }

@@ -23,12 +23,13 @@ class ReferenceStore(
     private val builtinCache = ConcurrentHashMap<String, List<Reference>>()
     private val taughtCache = ConcurrentHashMap<String, List<Reference>>()
 
+    /**
+     * The label's icon drawn on plain tiles. A label without an icon gets no built-in examples (a blank
+     * tile would just compete with empty cells); it is recognized only once taught.
+     */
     fun builtin(label: String): List<Reference> = builtinCache.getOrPut(label) {
-        val icon = iconFor(label)
-        BACKGROUNDS.map { bg ->
-            val cell = icon?.fitInto(CELL, CELL, ICON_SCALE, bg) ?: Pixels.solid(CELL, CELL, bg)
-            Reference(label, CellFeature.of(cell), taught = false)
-        }
+        val icon = iconFor(label) ?: return@getOrPut emptyList()
+        BACKGROUNDS.map { bg -> Reference(label, CellFeature.of(icon.fitInto(CELL, CELL, ICON_SCALE, bg)), taught = false) }
     }
 
     fun taught(label: String): List<Reference> = taughtCache.getOrPut(label) {

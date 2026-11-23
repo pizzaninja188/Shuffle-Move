@@ -83,6 +83,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         refreshSetup()
     }
 
+    /** Adds a species as a stage disruption (from setup, or when correcting a cell it wasn't looking for). */
+    fun addDisruption(name: String) = viewModelScope.launch {
+        val team = repo.onEngine { repo.team() }
+        if (name in team.names || name in team.disruptions || name in Labels.SPECIALS) return@launch
+        repo.onEngine { repo.saveTeam(team.copy(disruptions = team.disruptions + name)) }
+        refreshSetup()
+    }
+
+    fun removeDisruption(name: String) = viewModelScope.launch {
+        val team = repo.onEngine { repo.team() }
+        repo.onEngine { repo.saveTeam(team.copy(disruptions = team.disruptions - name)) }
+        refreshSetup()
+    }
+
     fun setTeam(team: TeamSetup) = viewModelScope.launch {
         val mega = team.megaSlot?.takeIf { it in team.names }
         repo.onEngine { repo.saveTeam(team.copy(megaSlot = mega)) }
@@ -123,7 +137,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun paint(row: Int, col: Int, label: String) = viewModelScope.launch {
         val b = Board(_board.value ?: Board())
         repo.onEngine {
-            b.setSpeciesAt(row, col, speciesManager.getSpeciesByName(Labels.speciesName(label)))
+            b.setSpeciesAt(row, col, speciesManager.getSpeciesByName(setup.value.team.speciesFor(label)))
             if (!Labels.canFreeze(label)) b.setFrozenAt(row, col, false)
         }
         _board.value = b
@@ -205,7 +219,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         repo.publishCapture(cap.copy(rect = rect, reading = reading, outcome = null))
     }
 
-    fun recognitionLabels(): List<String> = setup.value.team.let { Labels.forTeam(it.names, it.megaSlot) }
+    fun recognitionLabels(): List<String> = setup.value.team.labels
 
     companion object {
         val SPECIAL_LABELS = listOf(Species.AIR.name, Species.WOOD.name, Species.METAL.name, Species.COIN.name)

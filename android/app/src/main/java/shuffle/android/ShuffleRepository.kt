@@ -29,8 +29,25 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeoutException
 
-/** The team as the app edits it. Levels and skill levels live in Shuffle Move's roster. */
-data class TeamSetup(val names: List<String>, val megaSlot: String?)
+/**
+ * The team as the app edits it. [names] are your support Pokémon; [disruptions] are species the stage
+ * puts on the board, saved as Shuffle Move "non-support" team members, exactly as the desktop app
+ * does: they are recognized and can fall in, they don't count toward your team's types for
+ * type-based skills, and skills that remove non-support Pokémon (e.g. Eject) target them.
+ * Levels and skill levels live in Shuffle Move's roster.
+ */
+data class TeamSetup(
+    val names: List<String>,
+    val megaSlot: String?,
+    val disruptions: List<String> = emptyList(),
+    /** The mega form's name from species data (not always "Mega_" + name), or null. */
+    val megaLabel: String? = null,
+) {
+    val labels: List<String> get() = Labels.forTeam(names, megaLabel, disruptions)
+
+    /** The species a recognition label stands for on the simulator's board. */
+    fun speciesFor(label: String): String = if (megaSlot != null && label == megaLabel) megaSlot else label
+}
 
 /** One solve: the board that was solved and its results, best first. */
 data class SolveOutcome(
@@ -122,13 +139,20 @@ class ShuffleRepository(private val context: Context) {
 
     fun team(): TeamSetup {
         val t = engine.getTeamForStage(currentStage())
-        return TeamSetup(t.names.filter { it !in Labels.SPECIALS }, t.megaSlotName)
+        val all = t.names.filter { it !in Labels.SPECIALS }
+        val disruptions = all.filter { t.isNonSupport(it) }
+        val mega = t.megaSlotName
+        val megaLabel = mega?.let { engine.speciesManager.getSpeciesByName(it).megaName }
+        return TeamSetup(all - disruptions.toSet(), mega, disruptions, megaLabel)
     }
 
     fun saveTeam(setup: TeamSetup) {
         val team = TeamImpl()
-        setup.names.distinct().forEachIndexed { i, n -> team.addName(n, ('a' + i)) }
-        team.setMegaSlot(setup.megaSlot)
+        val support = setup.names.distinct()
+        val disruptions = setup.disruptions.distinct().filter { it !in support && it !in Labels.SPECIALS }
+        (support + disruptions).forEachIndexed { i, n -> team.addName(n, ('a' + i)) }
+        disruptions.forEach { team.setNonSupport(it, true) }
+        team.setMegaSlot(setup.megaSlot?.takeIf { it in support })
         val tm = engine.teamManager
         tm.setTeamForStage(team, currentStage())
         tm.saveDataToConfig()
@@ -148,7 +172,7 @@ class ShuffleRepository(private val context: Context) {
         engine.rosterManager.saveDataToConfig()
     }
 
-    fun recognitionLabels(): List<String> = team().let { Labels.forTeam(it.names, it.megaSlot) }
+    fun recognitionLabels(): List<String> = team().labels
 
     fun recognizer(): BoardRecognizer {
         warmUp()
@@ -158,12 +182,13 @@ class ShuffleRepository(private val context: Context) {
     /** Builds the simulator's board from a reading (unsure cells use their best guess). */
     fun boardFrom(reading: BoardReading): Board {
         val sm = engine.speciesManager
+        val team = team()
         val board = Board()
         var megaSeen = false
         for (cell in reading.cells) {
             val label = cell.guess ?: Species.AIR.name
-            if (Labels.isMega(label)) megaSeen = true
-            board.setSpeciesAt(cell.row, cell.col, sm.getSpeciesByName(Labels.speciesName(label)))
+            if (label == team.megaLabel) megaSeen = true
+            board.setSpeciesAt(cell.row, cell.col, sm.getSpeciesByName(team.speciesFor(label)))
             board.setFrozenAt(cell.row, cell.col, cell.frozen)
         }
         board.setMegaProgress(if (megaSeen) megaThreshold() else megaProgress)

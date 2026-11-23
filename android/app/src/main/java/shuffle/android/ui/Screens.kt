@@ -100,9 +100,15 @@ fun HomeScreen(
                 Text(setup.stage?.title ?: "-", style = MaterialTheme.typography.bodyLarge)
                 Row(Modifier.padding(vertical = 6.dp)) {
                     setup.team.names.forEach { n ->
-                        SpeciesIcon(if (n == setup.team.megaSlot) Labels.megaOf(n) else n, 44.dp)
+                        SpeciesIcon(if (n == setup.team.megaSlot) setup.team.megaLabel ?: n else n, 44.dp)
                     }
                     if (setup.team.names.isEmpty()) Text("No team yet", style = MaterialTheme.typography.bodySmall)
+                }
+                if (setup.team.disruptions.isNotEmpty()) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 6.dp)) {
+                        Text("Disruptions:", style = MaterialTheme.typography.bodySmall)
+                        setup.team.disruptions.forEach { SpeciesIcon(it, 32.dp) }
+                    }
                 }
                 Button(onClick = onEditTeam) { Text("Change stage & team") }
             }
@@ -168,6 +174,7 @@ fun SetupScreen(vm: MainViewModel, onDone: () -> Unit) {
     val species by vm.species.collectAsState()
     var query by remember { mutableStateOf("") }
     var pickSlot by remember { mutableStateOf<Int?>(null) }
+    var pickDisruption by remember { mutableStateOf(false) }
     val team = setup.team
 
     Column(Modifier.padding(16.dp)) {
@@ -220,17 +227,41 @@ fun SetupScreen(vm: MainViewModel, onDone: () -> Unit) {
                     if (name != null) {
                         TextButton(onClick = {
                             val names = team.names.toMutableList().also { it.removeAt(slot) }
-                            vm.setTeam(TeamSetup(names, team.megaSlot))
+                            vm.setTeam(team.copy(names = names))
                         }) { Text("Remove") }
                     }
                 }
             }
+            HorizontalDivider(Modifier.padding(vertical = 10.dp))
+            Text("Disruptions (saved for this stage)", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Include stage disruptions you want recognized (they count as non-support). Wood, Metal, Coin and " +
-                    "empty cells are always recognized.",
+                "Pokémon the stage adds to your board. They are recognized and can fall in. Like Shuffle Move's " +
+                    "non-support Pokémon, they don't count toward your team's types, and skills that remove " +
+                    "non-support Pokémon (e.g. Eject) target them. Wood, Metal, Coin and empty cells are always " +
+                    "recognized.",
                 style = MaterialTheme.typography.bodySmall,
             )
+            team.disruptions.forEach { name ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    SpeciesIcon(name, 40.dp)
+                    Text(name, Modifier.weight(1f).padding(start = 8.dp))
+                    TextButton(onClick = { vm.removeDisruption(name) }) { Text("Remove") }
+                }
+            }
+            TextButton(onClick = { pickDisruption = true }) { Text("+ Add disruption") }
         }
+    }
+
+    if (pickDisruption) {
+        PickerDialog(
+            title = "Add disruption",
+            options = species.filter { it !in team.names && it !in team.disruptions },
+            onDismiss = { pickDisruption = false },
+            onPick = { picked ->
+                vm.addDisruption(picked)
+                pickDisruption = false
+            },
+        )
     }
 
     val slot = pickSlot
@@ -242,7 +273,7 @@ fun SetupScreen(vm: MainViewModel, onDone: () -> Unit) {
             onPick = { picked ->
                 val names = team.names.toMutableList()
                 if (slot < names.size) names[slot] = picked else names += picked
-                vm.setTeam(TeamSetup(names.distinct(), team.megaSlot))
+                vm.setTeam(team.copy(names = names.distinct(), disruptions = team.disruptions - picked))
                 pickSlot = null
             },
         )
@@ -320,6 +351,8 @@ fun ReviewScreen(vm: MainViewModel, onBack: () -> Unit, onCalibrate: () -> Unit)
     val setup by vm.setup.collectAsState()
     val cap = capture
     var fixing by remember { mutableStateOf<shuffle.android.vision.CellReading?>(null) }
+    var fixingOther by remember { mutableStateOf<shuffle.android.vision.CellReading?>(null) }
+    val species by vm.species.collectAsState()
 
     Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -366,13 +399,30 @@ fun ReviewScreen(vm: MainViewModel, onBack: () -> Unit, onCalibrate: () -> Unit)
     if (cell != null) {
         PickerDialog(
             title = "Cell (${cell.row}, ${cell.col}) is…",
-            options = Labels.forTeam(setup.team.names, setup.team.megaSlot),
+            options = setup.team.labels + OTHER_SPECIES,
             searchable = false,
             onDismiss = { fixing = null },
             onPick = { label ->
-                vm.correctCell(cell, label)
+                if (label == OTHER_SPECIES) fixingOther = cell else vm.correctCell(cell, label)
                 fixing = null
             },
         )
     }
+
+    // A species the recognizer wasn't looking for: add it as a stage disruption and teach the crop.
+    val other = fixingOther
+    if (other != null) {
+        PickerDialog(
+            title = "Which Pokémon? (added as a disruption)",
+            options = species.filter { it !in setup.team.labels },
+            onDismiss = { fixingOther = null },
+            onPick = { picked ->
+                vm.addDisruption(picked)
+                vm.correctCell(other, picked)
+                fixingOther = null
+            },
+        )
+    }
 }
+
+private const val OTHER_SPECIES = "Other Pokémon…"
