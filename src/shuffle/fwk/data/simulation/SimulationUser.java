@@ -18,26 +18,48 @@
 
 package shuffle.fwk.data.simulation;
 
+import java.util.Collection;
+
 import shuffle.fwk.config.provider.BoardManagerProvider;
 import shuffle.fwk.config.provider.EffectManagerProvider;
-import shuffle.fwk.config.provider.EntryModeManagerProvider;
 import shuffle.fwk.config.provider.GradingModeManagerProvider;
-import shuffle.fwk.config.provider.PreferencesManagerProvider;
 import shuffle.fwk.config.provider.RosterManagerProvider;
 import shuffle.fwk.config.provider.SpeciesManagerProvider;
-import shuffle.fwk.config.provider.TeamManagerProvider;
+import shuffle.fwk.data.Effect;
+import shuffle.fwk.data.Team;
 import shuffle.fwk.data.simulation.util.SimulationAcceptor;
-import shuffle.fwk.gui.user.PaintsIndicatorUser;
-import shuffle.fwk.service.movepreferences.MovePreferencesServiceUser;
 
 /**
+ * Everything {@link SimulationCore} reads to set up a simulation. This interface is deliberately
+ * headless: the desktop UI's extra requirements live in ShuffleModelUser, so Android (or any other
+ * front end) only has to supply these values.
+ *
  * @author Andrew Meyers
  *
  */
 public interface SimulationUser extends SimulationAcceptor, RosterManagerProvider, SpeciesManagerProvider,
-      BoardManagerProvider, TeamManagerProvider, PreferencesManagerProvider, MovePreferencesServiceUser,
-      PaintsIndicatorUser, EffectManagerProvider, GradingModeManagerProvider, EntryModeManagerProvider {
-   
+      BoardManagerProvider, EffectManagerProvider, GradingModeManagerProvider {
+
    public boolean isMegaAllowed();
+
+   /** @return The team for the current stage. */
+   Team getCurrentTeam();
+
+   /** @return How many random skyfall variations to simulate per move (accuracy vs. time). */
+   int getPreferredNumFeeders();
+
+   int getMegaProgress();
+
+   int getRemainingHealth();
+
+   int getRemainingMoves();
+
+   Collection<Effect> getDisabledEffects();
+
+   boolean getAttackPowerUp();
+
+   int getEffectThreshold();
+
+   boolean isMobileMode();
 
 }

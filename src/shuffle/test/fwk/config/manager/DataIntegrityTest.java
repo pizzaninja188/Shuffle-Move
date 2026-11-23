@@ -96,7 +96,7 @@ public class DataIntegrityTest {
 
    @Test
    public final void testImageManager() {
-      factory.getImageManager();
+      factory.getIconManager(ImageManager.class);
       if (!mockHandler.getLog().isEmpty()) {
          fail("Config Warnings: " + String.valueOf(mockHandler.getLog().size()));
       }
@@ -136,7 +136,7 @@ public class DataIntegrityTest {
    
    @Test
    public final void testImagesForSpecies() {
-      ImageManager imgManager = factory.getImageManager();
+      ImageManager imgManager = factory.getIconManager(ImageManager.class);
       SpeciesManager speciesManager = factory.getSpeciesManager();
       int missing = 0;
       List<SpeciesPaint> paintsToCheck = new ArrayList<SpeciesPaint>();

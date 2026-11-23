@@ -19,12 +19,18 @@
 package shuffle.fwk;
 
 import shuffle.fwk.config.provider.ConfigFactoryProvider;
+import shuffle.fwk.config.provider.EntryModeManagerProvider;
+import shuffle.fwk.config.provider.PreferencesManagerProvider;
+import shuffle.fwk.config.provider.TeamManagerProvider;
 import shuffle.fwk.data.simulation.SimulationUser;
+import shuffle.fwk.gui.user.PaintsIndicatorUser;
+import shuffle.fwk.service.movepreferences.MovePreferencesServiceUser;
 
 /**
  * @author Andrew Meyers
  *
  */
-public interface ShuffleModelUser extends SimulationUser, ConfigFactoryProvider {
+public interface ShuffleModelUser extends SimulationUser, ConfigFactoryProvider, TeamManagerProvider,
+      PreferencesManagerProvider, MovePreferencesServiceUser, PaintsIndicatorUser, EntryModeManagerProvider {
    
 }

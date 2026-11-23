@@ -18,8 +18,6 @@
 
 package shuffle.fwk.config;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
@@ -123,7 +121,7 @@ public enum EntryType {
    COLOR {
       
       @Override
-      public Color parseValue(String key, String value) throws Exception {
+      public ConfigColor parseValue(String key, String value) throws Exception {
          Matcher m = COLOR_PATTERN.matcher(value);
          if (!m.find()) {
             throw new IllegalArgumentException("Value is not a color." + value);
@@ -135,27 +133,18 @@ public enum EntryType {
          if (m.group(4) != null) {
             a = Integer.parseInt(m.group(4));
          }
-         if (r < 0 || r > 255) {
-            throw new NumberFormatException("Red value invalid: " + r);
-         } else if (g < 0 || g > 255) {
-            throw new NumberFormatException("Green value invalid: " + g);
-         } else if (b < 0 || b > 255) {
-            throw new NumberFormatException("Blue value invalid: " + b);
-         } else if (a < 0 || a > 255) {
-            throw new NumberFormatException("Alpha value invalid: " + a);
-         }
-         // Guaranteed that all four values are valid integers between 0 and 255 inclusive.
-         return new Color(r, g, b, a);
+         // ConfigColor validates that all four values are between 0 and 255 inclusive.
+         return new ConfigColor(r, g, b, a);
       }
       
       @Override
       public Class<? extends Object> getDataClass() {
-         return Color.class;
+         return ConfigColor.class;
       }
       
       @Override
       public String getDataString(Object obj) throws Exception {
-         Color value = (Color) obj;
+         ConfigColor value = (ConfigColor) obj;
          int red = value.getRed();
          int green = value.getGreen();
          int blue = value.getBlue();
@@ -270,7 +259,7 @@ public enum EntryType {
       
       @Override
       public Object parseValue(String key, String value) throws Exception {
-         File f = new File(value).getAbsoluteFile();
+         File f = ConfigPaths.resolve(value);
          if (!f.exists()) {
             String parentPath = f.getParent();
             if (parentPath != null) {
@@ -289,7 +278,7 @@ public enum EntryType {
       @Override
       public String getDataString(Object obj) throws Exception {
          File ret = (File) obj;
-         String userdir = System.getProperty("user.dir").replaceAll("\\\\", "/");
+         String userdir = ConfigPaths.getBaseDirectory().getPath().replaceAll("\\\\", "/");
          String filePath = ret.getAbsolutePath().replaceAll("\\\\", "/");
          if (filePath.startsWith(userdir)) {
             filePath = filePath.substring(userdir.length() + 1);
@@ -379,7 +368,7 @@ public enum EntryType {
    FONT {
       
       @Override
-      public Font parseValue(String key, String value) throws Exception {
+      public ConfigFont parseValue(String key, String value) throws Exception {
          Matcher m = FONT_PATTERN.matcher(value);
          if (!m.find()) {
             throw new IllegalArgumentException("Value is not a font. " + value);
@@ -393,9 +382,9 @@ public enum EntryType {
          if (styles.length > 0) {
             for (String s : styles) {
                if (s.equalsIgnoreCase("ITALIC")) {
-                  style |= Font.ITALIC;
+                  style |= ConfigFont.ITALIC;
                } else if (s.equalsIgnoreCase("BOLD")) {
-                  style |= Font.BOLD;
+                  style |= ConfigFont.BOLD;
                } else {
                   s = s.trim();
                   if (s.matches("\\d+")) {
@@ -413,12 +402,12 @@ public enum EntryType {
          
          int size = Integer.parseInt(sizeString);
          
-         return new Font(name, style, size);
+         return new ConfigFont(name, style, size);
       }
       
       @Override
       public String getDataString(Object obj) throws Exception {
-         Font value = (Font) obj;
+         ConfigFont value = (ConfigFont) obj;
          String name = value.getFamily();
          int style = value.getStyle();
          int size = value.getSize();
@@ -426,8 +415,8 @@ public enum EntryType {
       }
       
       @Override
-      public Class<Font> getDataClass() {
-         return Font.class;
+      public Class<ConfigFont> getDataClass() {
+         return ConfigFont.class;
       }
       
    },

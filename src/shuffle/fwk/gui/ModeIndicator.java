@@ -93,10 +93,10 @@ public class ModeIndicator extends JPanel implements FocusRequester, I18nUser {
       c.insets = new Insets(1, 2, 1, 2);
       modeLabel = new JLabel(getString(KEY_MODE_TEXT));
       ConfigManager manager = getUser().getPreferencesManager();
-      Font labelFont = manager.getFontValue(KEY_LABEL_FONT, DEFAULT_FONT);
+      Font labelFont = AwtConfig.font(manager.getFontValue(KEY_LABEL_FONT), DEFAULT_FONT);
       labelFont = new JLabel().getFont().deriveFont(labelFont.getStyle(), labelFont.getSize2D());
       labelFont = getUser().scaleFont(labelFont);
-      Font modeFont = manager.getFontValue(KEY_MODE_FONT, DEFAULT_FONT);
+      Font modeFont = AwtConfig.font(manager.getFontValue(KEY_MODE_FONT), DEFAULT_FONT);
       modeFont = new JLabel().getFont().deriveFont(modeFont.getStyle(), modeFont.getSize2D());
       modeFont = getUser().scaleFont(modeFont);
       modeLabel.setFont(labelFont);
@@ -155,11 +155,11 @@ public class ModeIndicator extends JPanel implements FocusRequester, I18nUser {
    }
    
    private Color getModeSelectColor() {
-      return getUser().getPreferencesManager().getColorFor(KEY_MODE_SELECT_COLOR);
+      return AwtConfig.color(getUser().getPreferencesManager().getColorFor(KEY_MODE_SELECT_COLOR));
    }
    
    private Color getColorFor(EntryMode mode) {
-      return getUser().getPreferencesManager().getColorFor(mode);
+      return AwtConfig.color(getUser().getPreferencesManager().getColorFor(mode));
    }
    
    public boolean updateMode() {
@@ -224,13 +224,13 @@ public class ModeIndicator extends JPanel implements FocusRequester, I18nUser {
          modeMap.get(mode).addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
-               mode.handleKeyPress(getUser(), e);
+               mode.handleKeyPress(getUser(), e.getKeyCode(), e.getKeyChar());
             }
             
             @Override
             public void keyPressed(KeyEvent e) {
                if (e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) {
-                  mode.handleKeyPress(getUser(), e);
+                  mode.handleKeyPress(getUser(), e.getKeyCode(), e.getKeyChar());
                }
             }
          });

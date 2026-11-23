@@ -70,15 +70,15 @@ public class SpeciesManager extends ConfigManager {
             dexToSpecies.put(s.getNumber(), new ArrayList<Species>(Arrays.asList(s)));
          }
       }
-      ImageManager im = getFactory().getImageManager();
+      ConfigManager icons = getFactory().getIconManager(ConfigManager.class);
       for (Double dex : dexToSpecies.keySet()) {
          List<Species> list = dexToSpecies.get(dex);
          if (list.size() > 1) {
             Species keep = list.get(0);
-            for (int i = 1; i < list.size() && im.getImageFor(keep) == null; i++) {
+            for (int i = 1; i < list.size() && !hasIcon(icons, keep); i++) {
                keep = list.get(i);
             }
-            if (im.getImageFor(keep) != null) {
+            if (hasIcon(icons, keep)) {
                final String keepName = keep.getName();
                for (Species s : list) {
                   String name = s.getName();
@@ -99,6 +99,11 @@ public class SpeciesManager extends ConfigManager {
       return changed;
    }
    
+   private static boolean hasIcon(ConfigManager icons, Species s) {
+      String name = s.getName();
+      return icons.hasKey(EntryType.RESOURCE, name) || icons.hasKey(EntryType.FILE, name);
+   }
+
    private boolean setDefaultSpecies() {
       boolean changed = false;
       for (Species species : Species.FIXED_SPECIES) {

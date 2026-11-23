@@ -86,8 +86,8 @@ public class MoveIndicator extends JPanel implements I18nUser {
    
    private void setup() {
       ConfigManager manager = getUser().getPreferencesManager();
-      Color scoreColor = manager.getColorFor(KEY_SCORE_COLOR);
-      Font fontToUse = manager.getFontValue(KEY_MOVE_FONT, DEFAULT_FONT_USED);
+      Color scoreColor = AwtConfig.color(manager.getColorFor(KEY_SCORE_COLOR));
+      Font fontToUse = AwtConfig.font(manager.getFontValue(KEY_MOVE_FONT), DEFAULT_FONT_USED);
       fontToUse = new JLabel().getFont().deriveFont(fontToUse.getStyle(), fontToUse.getSize2D());
       fontToUse = getUser().scaleFont(fontToUse);
       messageLabel = new JLabel(getString(KEY_TEXT_NOMOVE));
@@ -105,14 +105,14 @@ public class MoveIndicator extends JPanel implements I18nUser {
       
       pickupLabel = new JLabel(getTextForCoord(null));
       pickupLabel.setFont(fontToUse);
-      Color pickupColor = manager.getColorFor(GridPanel.KEY_PICKUP_COLOR);
+      Color pickupColor = AwtConfig.color(manager.getColorFor(GridPanel.KEY_PICKUP_COLOR));
       if (pickupColor != null) {
          pickupLabel.setForeground(pickupColor);
       }
       
       dropatLabel = new JLabel(getTextForCoord(null));
       dropatLabel.setFont(fontToUse);
-      Color dropatColor = manager.getColorFor(GridPanel.KEY_DROPAT_COLOR);
+      Color dropatColor = AwtConfig.color(manager.getColorFor(GridPanel.KEY_DROPAT_COLOR));
       if (dropatColor != null) {
          dropatLabel.setForeground(dropatColor);
       }

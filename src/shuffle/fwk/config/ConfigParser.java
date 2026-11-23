@@ -39,13 +39,13 @@ public class ConfigParser<Y> {
    private static final Logger LOG = Logger.getLogger(ConfigParser.class.getName());
    
    public static <Y> LinkedHashMap<String, List<Y>> parseFile(String filePathName, Interpreter<Y> inter) {
-      return parse(new File(filePathName), inter);
+      return parse(ConfigPaths.resolve(filePathName), inter);
    }
    
    public static <Y> LinkedHashMap<String, List<Y>> parseResource(String resourceName, Interpreter<Y> inter) {
       LinkedHashMap<String, List<Y>> ret = new LinkedHashMap<String, List<Y>>();
       if (resourceName != null) {
-         InputStream is = ClassLoader.getSystemResourceAsStream(resourceName);
+         InputStream is = ConfigPaths.openResource(resourceName);
          if (is != null) {
             ret = parse(is, inter);
             try {

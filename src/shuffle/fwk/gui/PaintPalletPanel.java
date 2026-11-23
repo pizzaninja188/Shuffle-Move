@@ -674,7 +674,7 @@ public class PaintPalletPanel extends JPanel implements I18nUser {
    }
    
    private Color getPaintSelectColor() {
-      return getUser().getPreferencesManager().getColorValue(KEY_PAINT_SELECT_COLOR, Color.BLACK);
+      return AwtConfig.color(getUser().getPreferencesManager().getColorValue(KEY_PAINT_SELECT_COLOR), Color.BLACK);
    }
    
    private boolean setBorderFor(Indicator<SpeciesPaint> ind, boolean selected) {

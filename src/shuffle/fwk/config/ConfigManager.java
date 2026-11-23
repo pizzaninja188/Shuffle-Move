@@ -18,8 +18,6 @@
 
 package shuffle.fwk.config;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +42,6 @@ import shuffle.fwk.data.Species;
 import shuffle.fwk.data.SpeciesPaint;
 import shuffle.fwk.data.Stage;
 import shuffle.fwk.data.Team;
-import shuffle.fwk.update.UpdateCheck;
 
 /**
  * @author Andrew Meyers
@@ -178,10 +175,26 @@ public class ConfigManager {
       setEntry(EntryType.LONG, KEY_BUILD_DATE, ShuffleVersion.BUILD_DATE);
    }
    
+   private static final String NO_VERSION = "v0.0.0";
+   private static final java.util.regex.Pattern VERSION_PATTERN = java.util.regex.Pattern
+         .compile("v(\\d+)\\.(\\d+)\\.(\\d+)");
+
+   /** Same parsing as UpdateCheck.getVersionNumbers, kept here so config has no desktop dependency. */
+   private static int[] getVersionNumbers(String version) {
+      int[] ret = new int[3];
+      java.util.regex.Matcher m = VERSION_PATTERN.matcher(version);
+      if (m.find()) {
+         for (int i = 0; i < 3; i++) {
+            ret[i] = Math.max(0, Integer.parseInt(m.group(i + 1)));
+         }
+      }
+      return ret;
+   }
+
    public final boolean isOutOfDate() {
       try {
-         String fileVersionString = getStringValue(KEY_VERSION, UpdateCheck.NO_VERSION);
-         int[] fileVersionNumbers = new UpdateCheck().getVersionNumbers(fileVersionString);
+         String fileVersionString = getStringValue(KEY_VERSION, NO_VERSION);
+         int[] fileVersionNumbers = getVersionNumbers(fileVersionString);
          int[] curVersionNumbers = ShuffleVersion.VERSION_ARRAY;
          boolean uptodate = true;
          for (int i = 0; i < 3; i++) {
@@ -433,20 +446,20 @@ public class ConfigManager {
    }
    
    // Color
-   public Color getColorValue(String key) {
-      return getValue(EntryType.COLOR, key, Color.class);
+   public ConfigColor getColorValue(String key) {
+      return getValue(EntryType.COLOR, key, ConfigColor.class);
    }
-   
-   public Color getColorValue(String key, Color def) {
-      return getValue(EntryType.COLOR, key, Color.class, def);
+
+   public ConfigColor getColorValue(String key, ConfigColor def) {
+      return getValue(EntryType.COLOR, key, ConfigColor.class, def);
    }
-   
-   public List<Color> getColorValues() {
-      return getValues(EntryType.COLOR, Color.class);
+
+   public List<ConfigColor> getColorValues() {
+      return getValues(EntryType.COLOR, ConfigColor.class);
    }
-   
-   public Color getColorFor(Object o) {
-      Color ret = null;
+
+   public ConfigColor getColorFor(Object o) {
+      ConfigColor ret = null;
       if (o != null) {
          Species s = null;
          boolean mega = false;
@@ -530,7 +543,7 @@ public class ConfigManager {
    public String readEntireFileFromPath(String filePath) {
       String ret = null;
       if (filePath != null) {
-         File f = new File(filePath);
+         File f = ConfigPaths.resolve(filePath);
          ret = readEntireFileFromFile(f);
       }
       return ret == null ? "" : ret;
@@ -589,16 +602,16 @@ public class ConfigManager {
    }
    
    // Font
-   public Font getFontValue(String key) {
-      return getValue(EntryType.FONT, key, Font.class);
+   public ConfigFont getFontValue(String key) {
+      return getValue(EntryType.FONT, key, ConfigFont.class);
    }
-   
-   public Font getFontValue(String key, Font def) {
-      return getValue(EntryType.FONT, key, Font.class, def);
+
+   public ConfigFont getFontValue(String key, ConfigFont def) {
+      return getValue(EntryType.FONT, key, ConfigFont.class, def);
    }
-   
-   public List<Font> getFontValues() {
-      return getValues(EntryType.FONT, Font.class);
+
+   public List<ConfigFont> getFontValues() {
+      return getValues(EntryType.FONT, ConfigFont.class);
    }
    
    // Resource
@@ -617,7 +630,7 @@ public class ConfigManager {
    public InputStream getResourceInputStream(String path) {
       InputStream result = null;
       if (path != null) {
-         result = ClassLoader.getSystemResourceAsStream(path);
+         result = ConfigPaths.openResource(path);
       }
       return result;
    }

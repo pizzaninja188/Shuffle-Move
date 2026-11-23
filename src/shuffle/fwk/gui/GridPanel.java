@@ -316,7 +316,7 @@ public class GridPanel extends JPanel {
       EntryMode curMode = getUser().getCurrentEntryMode();
       if (!curMode.equals(mode)) {
          mode = curMode;
-         Color gridOutlineColor = preferencesManager.getColorFor(mode);
+         Color gridOutlineColor = AwtConfig.color(preferencesManager.getColorFor(mode));
          content.setBorder(new LineBorder(gridOutlineColor, getGridBorderThickness(), true));
          changed = true;
       }
@@ -343,9 +343,9 @@ public class GridPanel extends JPanel {
          ConfigManager preferencesManager) {
       Color selectColor = null;
       if (coords.equals(curCursor)) {
-         selectColor = preferencesManager.getColorFor(KEY_CUR_CURSOR_COLOR);
+         selectColor = AwtConfig.color(preferencesManager.getColorFor(KEY_CUR_CURSOR_COLOR));
       } else if (coords.equals(prevCursor)) {
-         selectColor = preferencesManager.getColorFor(KEY_PREV_CURSOR_COLOR);
+         selectColor = AwtConfig.color(preferencesManager.getColorFor(KEY_PREV_CURSOR_COLOR));
       }
       return selectColor;
    }
@@ -354,9 +354,9 @@ public class GridPanel extends JPanel {
          ConfigManager preferencesManager) {
       Color moveColor = null;
       if (coords.equals(pickup)) {
-         moveColor = preferencesManager.getColorFor(KEY_PICKUP_COLOR);
+         moveColor = AwtConfig.color(preferencesManager.getColorFor(KEY_PICKUP_COLOR));
       } else if (coords.equals(dropat)) {
-         moveColor = preferencesManager.getColorFor(KEY_DROPAT_COLOR);
+         moveColor = AwtConfig.color(preferencesManager.getColorFor(KEY_DROPAT_COLOR));
       }
       return moveColor;
    }

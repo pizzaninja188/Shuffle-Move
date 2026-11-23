@@ -71,7 +71,7 @@ public class ConfigLoader {
       } else {
          resources = new ArrayList<String>();
          for (String resource : resourceLocations) {
-            URL url = ClassLoader.getSystemResource(resource);
+            URL url = ConfigPaths.getResource(resource);
             if (url != null) {
                resources.add(resource);
             }
@@ -145,14 +145,14 @@ public class ConfigLoader {
          }
          for (String file : files) {
             try {
-               InputStream is = new FileInputStream(file);
+               InputStream is = new FileInputStream(ConfigPaths.resolve(file));
                addMissingTo(myMap, parse(is));
             } catch (FileNotFoundException e) {
                LOG.log(Level.FINE, e.getMessage());
             }
          }
          for (String resource : resources) {
-            InputStream is = ClassLoader.getSystemResourceAsStream(resource);
+            InputStream is = ConfigPaths.openResource(resource);
             addMissingTo(myMap, parse(is));
          }
          shouldReload = false;
@@ -164,7 +164,7 @@ public class ConfigLoader {
     */
    public void updateFromResource() {
       for (String resource : resources) {
-         InputStream is = ClassLoader.getSystemResourceAsStream(resource);
+         InputStream is = ConfigPaths.openResource(resource);
          LinkedHashMap<EntryType, LinkedHashMap<String, ConfigEntry>> parseResult = parse(is);
          for (EntryType type : myMap.keySet()) {
             LinkedHashMap<String, ConfigEntry> dataMappings = myMap.get(type);

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import shuffle.fwk.config.ConfigFactory;
+import shuffle.fwk.config.ConfigPaths;
 import shuffle.fwk.config.EntryType;
 import shuffle.fwk.config.loader.BoardConfigLoader;
 import shuffle.fwk.config.writer.PreferencesWriter;
@@ -99,7 +100,7 @@ public class BoardManager {
       String pathFormat = factory.getPathManager().getStringValue(KEY_DEFAULT_BOARD_STAGE_CONFIG);
       if (pathFormat != null) {
          String resourceName = String.format(pathFormat, stage.getName());
-         URL url = ClassLoader.getSystemResource(resourceName);
+         URL url = ConfigPaths.getResource(resourceName);
          if (url != null) {
             return Arrays.asList(resourceName);
          }

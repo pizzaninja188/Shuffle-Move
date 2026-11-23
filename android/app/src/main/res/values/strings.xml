@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Shuffle Move</string>
+    <string name="overlay_channel">Move overlay</string>
+    <string name="overlay_running">Tap the bubble to show the best move</string>
+    <string name="stop">Stop</string>
+</resources>

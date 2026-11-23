@@ -540,7 +540,7 @@ public class ShuffleController extends Observable implements ShuffleViewUser, Sh
    
    @Override
    public ImageManager getImageManager() {
-      return getConfigFactory().getImageManager();
+      return getConfigFactory().getIconManager(ImageManager.class);
    }
    
    @Override

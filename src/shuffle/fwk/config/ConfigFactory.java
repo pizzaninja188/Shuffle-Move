@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import shuffle.fwk.config.manager.EffectManager;
 import shuffle.fwk.config.manager.EntryModeManager;
 import shuffle.fwk.config.manager.GradingModeManager;
-import shuffle.fwk.config.manager.ImageManager;
 import shuffle.fwk.config.manager.RosterManager;
 import shuffle.fwk.config.manager.SpeciesManager;
 import shuffle.fwk.config.manager.StageManager;
@@ -233,8 +232,12 @@ public class ConfigFactory {
       }
    }
    
-   public ImageManager getImageManager() {
-      return getManager(KEY_RESOURCE_ICONS, KEY_FILE_ICONS, ImageManager.class);
+   /**
+    * Gets the icon configuration (species name to icon resource/file) as the given manager type. The
+    * desktop UI asks for its ImageManager; headless code can use a plain ConfigManager.
+    */
+   public <T extends ConfigManager> T getIconManager(Class<T> c) {
+      return getManager(KEY_RESOURCE_ICONS, KEY_FILE_ICONS, c);
    }
    
    public TeamManager getTeamManager() {

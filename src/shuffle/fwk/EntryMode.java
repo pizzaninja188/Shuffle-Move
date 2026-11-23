@@ -18,7 +18,6 @@
 
 package shuffle.fwk;
 
-import java.awt.event.KeyEvent;
 import java.util.List;
 
 import shuffle.fwk.config.manager.SpeciesManager;
@@ -36,14 +35,14 @@ public enum EntryMode {
       }
       
       @Override
-      public void handleKeyPress(EntryModeUser user, KeyEvent evt) {
+      public void handleKeyPress(EntryModeUser user, int keyCode, char keyChar) {
          TeamManager tm = user.getTeamManager();
-         if (tm.isFrozenBind(evt.getKeyChar())) {
+         if (tm.isFrozenBind(keyChar)) {
             user.toggleFrozen();
-         } else if (evt.getKeyCode() == KeyEvent.VK_TAB) {
+         } else if (keyCode == VK_TAB) {
             user.changeMode();
          } else {
-            Species species = getSpeciesFor(user, evt);
+            Species species = getSpeciesFor(user, keyChar);
             if (!species.equals(Species.AIR)) {
                user.setSelectedSpecies(species);
             }
@@ -74,31 +73,31 @@ public enum EntryMode {
       }
       
       @Override
-      public void handleKeyPress(EntryModeUser user, KeyEvent evt) {
+      public void handleKeyPress(EntryModeUser user, int keyCode, char keyChar) {
          TeamManager tm = user.getTeamManager();
-         if (tm.isFrozenBind(evt.getKeyChar())) {
+         if (tm.isFrozenBind(keyChar)) {
             List<Integer> prevCursor = user.getPreviousCursor();
             if (prevCursor != null && prevCursor.size() >= 2) {
                user.toggleFrozenAt(prevCursor.get(0), prevCursor.get(1));
             }
-         } else if (evt.getKeyChar() == KeyEvent.VK_TAB) {
+         } else if (keyChar == VK_TAB) {
             user.changeMode();
-         } else if (evt.getKeyChar() == KeyEvent.VK_SPACE) {
+         } else if (keyChar == VK_SPACE) {
             user.advanceCursorBy(1);
-         } else if (evt.getKeyChar() == KeyEvent.VK_BACK_SPACE) {
+         } else if (keyChar == VK_BACK_SPACE) {
             user.advanceCursorBy(-1);
-         } else if (evt.getKeyChar() == KeyEvent.VK_DELETE) {
+         } else if (keyChar == VK_DELETE) {
             paintWith(user, SpeciesPaint.AIR);
-         } else if (evt.getKeyCode() == KeyEvent.VK_UP) {
+         } else if (keyCode == VK_UP) {
             user.advanceCursorBy(-Board.NUM_COLS);
-         } else if (evt.getKeyCode() == KeyEvent.VK_DOWN) {
+         } else if (keyCode == VK_DOWN) {
             user.advanceCursorBy(+Board.NUM_COLS);
-         } else if (evt.getKeyCode() == KeyEvent.VK_LEFT) {
+         } else if (keyCode == VK_LEFT) {
             user.advanceCursorBy(-1);
-         } else if (evt.getKeyCode() == KeyEvent.VK_RIGHT) {
+         } else if (keyCode == VK_RIGHT) {
             user.advanceCursorBy(+1);
          } else {
-            Species species = getSpeciesFor(user, evt);
+            Species species = getSpeciesFor(user, keyChar);
             if (!Species.AIR.equals(species)) {
                user.setSelectedSpecies(species);
                SpeciesPaint curPaint = user.getCurrentSpeciesPaint();
@@ -118,6 +117,16 @@ public enum EntryMode {
          return PAINT;
       }
    };
+   
+   // Values of java.awt.event.KeyEvent.VK_* used above.
+   private static final int VK_TAB = 0x09;
+   private static final int VK_SPACE = 0x20;
+   private static final int VK_BACK_SPACE = 0x08;
+   private static final int VK_DELETE = 0x7F;
+   private static final int VK_LEFT = 0x25;
+   private static final int VK_UP = 0x26;
+   private static final int VK_RIGHT = 0x27;
+   private static final int VK_DOWN = 0x28;
    
    /**
     * @param user
@@ -142,24 +151,26 @@ public enum EntryMode {
       return i18nKey;
    }
    
-   protected Species getSpeciesFor(EntryModeUser user, KeyEvent evt) {
+   protected Species getSpeciesFor(EntryModeUser user, char keyChar) {
       Team team = user.getCurrentTeam();
       SpeciesManager speciesManager = user.getSpeciesManager();
-      char c = evt.getKeyChar();
-      return team.getSpecies(c, speciesManager);
+      return team.getSpecies(keyChar, speciesManager);
    }
    
    public abstract String getColorKey();
    
    /**
-    * Handles the specified KeyEvent, as specified by {@link java.awt.event.KeyEvent}
+    * Handles a key press. Key codes use the java.awt.event.KeyEvent VK_ values (mirrored below) so
+    * this class has no AWT dependency and can run headless.
     * 
     * @param user
     *           The EntryModeUser to use.
-    * @param evt
-    *           The KeyEvent to handle
+    * @param keyCode
+    *           The key code, as from KeyEvent.getKeyCode()
+    * @param keyChar
+    *           The key character, as from KeyEvent.getKeyChar()
     */
-   public abstract void handleKeyPress(EntryModeUser user, KeyEvent evt);
+   public abstract void handleKeyPress(EntryModeUser user, int keyCode, char keyChar);
    
    /**
     * Handles the specified grid paint action, by row and column.

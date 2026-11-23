@@ -9,3 +9,14 @@
 src/shuffle/fwk/ShuffleVersion.java
 /output/
 /junit/
+
+# Gradle
+.gradle/
+.gradle-build/
+/core/build/
+/desktop/build/
+/android/**/build/
+local.properties
+.idea/
+*.iml
+.kotlin/

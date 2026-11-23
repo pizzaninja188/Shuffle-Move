@@ -68,7 +68,7 @@ public class Indicator<Y extends Object> extends JLabel {
       }
       this.maxTextLength = maxTextLength;
       ConfigManager manager = user.getPreferencesManager();
-      Font fontToUse = manager.getFontValue(KEY_INDICATOR_FONT, DEFAULT_FONT);
+      Font fontToUse = AwtConfig.font(manager.getFontValue(KEY_INDICATOR_FONT), DEFAULT_FONT);
       fontToUse = this.user.scaleFont(fontToUse);
       setupIndicator(fontToUse);
    }
@@ -125,7 +125,7 @@ public class Indicator<Y extends Object> extends JLabel {
       }
       Color indicatorColor = null;
       if (icon == null) { // no icon, we need to get a background color
-         indicatorColor = getPreferencesManager().getColorFor(value);
+         indicatorColor = AwtConfig.color(getPreferencesManager().getColorFor(value));
       }
       boolean changing = setIndicatorIcon(icon);
       changing |= setIndicatorText(textToUse);
